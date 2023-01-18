@@ -1,0 +1,45 @@
+clc;
+clear all; close all
+clearvars;
+n=input('enter for n bit PCM system :');
+n1=input('enter sampling frequency :');
+l=2^n;
+vmax=8;
+x=0:pi/n1:4*pi;
+actualsignl=vmax*sin(x);
+subplot(3,1,1);
+plot(actualsignl);
+title('analog signal');
+subplot(3,1,2);
+stem(actualsignl);
+grid on;
+title('sampled signal');
+vmin=-vmax;
+stepsize=(vmax-vmin)/l;
+quantizationlevel=vmin:stepsize:vmax;
+codebook=vmin-(stepsize/2):stepsize:vmax+(stepsize/2);
+[ind,q]=quantiz(actualsignl,quantizationlevel,codebook);
+nonzerind=find(ind~=0);
+belowvminind=find(q==vmin-(stepsize/2));
+q(belowvminind)=vmin+(stepsize/2);
+subplot(3,1,3);
+stem(q);
+grid on ;
+title('quantized signal');
+figure
+transmittedsig=de2bi(ind,'left-msb');
+serialcode= reshape(transmittedsig',[1
+size(transmittedsig,1)*size(transmittedsig,2)]);
+subplot(2,1,1);
+grid on;
+stairs(serialcode);
+axis([0 100 -2 3]);
+title('transmitted signal');
+receivedcode=reshape(serialcode,n,length(serialcode)/n);
+index=bin2de('receivedcode','left-msb');
+q=(stepsize*index);
+q=q+(vmin+(stepsize/2));
+subplot(2,1,2);
+grid on;
+plot(q);
+title('demodulated signal');
